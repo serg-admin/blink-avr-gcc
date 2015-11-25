@@ -1,34 +1,93 @@
 # makefile, written by guido socher
-#MCU=at90s4433
-MCU=atmega32u4
-CC=avr-gcc
-OBJCOPY=avr-objcopy
-CFLAGS=-g -mmcu=$(MCU) -Wall -Wstrict-prototypes -I /usr/lib/avr/include/
+PRG            = blink
+OBJ            = $(PRG).o
+#MCU_TARGET     = at90s2313
+#MCU_TARGET     = at90s2333
+#MCU_TARGET     = at90s4414
+#MCU_TARGET     = at90s4433
+#MCU_TARGET     = at90s4434
+#MCU_TARGET     = at90s8515
+#MCU_TARGET     = at90s8535
+#MCU_TARGET     = atmega128
+#MCU_TARGET     = atmega1280
+#MCU_TARGET     = atmega1281
+#MCU_TARGET     = atmega1284p
+#MCU_TARGET     = atmega16
+#MCU_TARGET     = atmega163
+#MCU_TARGET     = atmega164p
+#MCU_TARGET     = atmega165
+#MCU_TARGET     = atmega165p
+#MCU_TARGET     = atmega168
+#MCU_TARGET     = atmega169
+#MCU_TARGET     = atmega169p
+#MCU_TARGET     = atmega2560
+#MCU_TARGET     = atmega2561
+#MCU_TARGET     = atmega32
+#MCU_TARGET     = atmega324p
+MCU_TARGET     = atmega328p
+#MCU_TARGET     = atmega325
+#MCU_TARGET     = atmega3250
+#MCU_TARGET     = atmega329
+#MCU_TARGET     = atmega3290
+#MCU_TARGET     = atmega32u4
+#MCU_TARGET     = atmega48
+#MCU_TARGET     = atmega64
+#MCU_TARGET     = atmega640
+#MCU_TARGET     = atmega644
+#MCU_TARGET     = atmega644p
+#MCU_TARGET     = atmega645
+#MCU_TARGET     = atmega6450
+#MCU_TARGET     = atmega649
+#MCU_TARGET     = atmega6490
+#MCU_TARGET     = atmega8
+#MCU_TARGET     = atmega8515
+#MCU_TARGET     = atmega8535
+#MCU_TARGET     = atmega88
+#MCU_TARGET     = attiny2313
+#MCU_TARGET     = attiny24
+#MCU_TARGET     = attiny25
+#MCU_TARGET     = attiny26
+#MCU_TARGET     = attiny261
+#MCU_TARGET     = attiny44
+#MCU_TARGET     = attiny45
+#MCU_TARGET     = attiny461
+#MCU_TARGET     = attiny84
+#MCU_TARGET     = attiny85
+#MCU_TARGET     = attiny861
+OPTIMIZE       = -O2
+
+# You should not have to change anything below here.
+
+CC             = avr-gcc
+
+DEFS           = -I /usr/lib/avr/include/
+LIBS           =
+
+# Override is only needed by avr-lib build system.
+
+override CFLAGS        = -g -Wall $(OPTIMIZE) -mmcu=$(MCU_TARGET) $(DEFS)
+override LDFLAGS       = -Wl,-Map,$(PRG).map
+
+OBJCOPY        = avr-objcopy
+OBJDUMP        = avr-objdump
 #-------------------
-all: blink.hex
+all: $(PRG).hex
 #-------------------
-blink.hex : blink.out
-	$(OBJCOPY) -R .eeprom -O ihex blink.out blink.hex
-blink.out : blink.o
-	$(CC) $(CFLAGS) -o blink.out -Wl,-Map,blink.map blink.o
-blink.o : blink.c
-	$(CC) $(CFLAGS) -Os -c blink.c
-# you need to erase first before loading the program.
-# load (program) the software into the eeprom:
-load: blink.hex
-	uisp -dlpt=/dev/parport0 --erase  -dprog=dapa
-	uisp -dlpt=/dev/parport0 --upload if=blink.hex -dprog=dapa  -v=3 --hash=32
-# here is a pre-compiled version in case you have trouble with
-# your development environment
-load_pre: blink_pre.hex
-	uisp -dlpt=/dev/parport0 --erase  -dprog=dapa
-	uisp -dlpt=/dev/parport0 --upload if=blink_pre.hex -dprog=dapa -dno-poll -v=3 --hash=32
+$(PRG).hex : $(PRG).out
+	$(OBJCOPY) -R .eeprom -O ihex $(PRG).out $(PRG).hex
+$(PRG).out : $(OBJ)
+	$(CC) $(CFLAGS) -o $(PRG).out $(LDFLAGS) $(OBJ)
+$(OBG) : $(PRG).c
+	$(CC) $(CFLAGS) -Os -c $(PRG).c
+pro_mini: $(PRG).hex
+	avrdude -c arduino -F -P /dev/ttyUSB0 -p $(MCU_TARGET) -b 57600  -U flash:w:$(PRG).hex:i
+leonardo: $(PRG).hex
+	avrdude -c avr109 -F -P /dev/ttyACM1 -p m32u4 -U flash:w:$(PRG).hex:i
 #-------------------
 clean:
 	rm -f *.o *.map *.out *.lst *.hex
 #-------------------
-get_asm:
-	$(CC) $(CFLAGS) -Os -c blink.c
-	$(CC) $(CFLAGS) -o blink.elf blink.o
-	avr-objdump -h -S blink.elf  > blink.lst
+get_asm: $(OBJ)
+	$(CC) $(CFLAGS) -o $(PRG).elf $(OBJ).o
+	$(OBJDUMP) -h -S $(PRG).elf > $(PRG).lst
 #-------------------
