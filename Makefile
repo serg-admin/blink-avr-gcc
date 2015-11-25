@@ -88,6 +88,6 @@ clean:
 	rm -f *.o *.map *.out *.lst *.hex
 #-------------------
 get_asm: $(OBJ)
-	$(CC) $(CFLAGS) -o $(PRG).elf $(OBJ).o
+	$(CC) $(CFLAGS) -o $(PRG).elf $(OBJ)
 	$(OBJDUMP) -h -S $(PRG).elf > $(PRG).lst
 #-------------------
