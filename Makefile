@@ -87,7 +87,7 @@ leonardo: $(PRG).hex
 clean:
 	rm -f *.o *.map *.out *.lst *.hex
 #-------------------
-get_asm: $(OBJ)
+get_asm: $(PRG).c
 	$(CC) $(CFLAGS) -o $(PRG).elf $(OBJ)
 	$(OBJDUMP) -h -S $(PRG).elf > $(PRG).lst
 #-------------------
